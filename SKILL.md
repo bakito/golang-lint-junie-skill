@@ -1,6 +1,6 @@
 ---
 name: golang-lint
-description: Lints Go code with golangci-lint, fixes reported issues, and keeps the project's .golangci.yml config consistent. Use whenever writing, editing, or reviewing Go (.go) files, before committing Go changes, or when the user asks to lint, format, or clean up Go code.
+description: Lints Go code with golangci-lint, fixes reported issues, and keeps the project's .golangci.yml config consistent. Use whenever writing, editing, or reviewing Go (.go) files, before commit[...]
 ---
 
 # Golang Lint
@@ -20,34 +20,30 @@ without silencing checks unless there's no reasonable fix.
 
 ## Workflow
 
-1. **Check for a `make lint` target first.** Look for a `Makefile` (or `makefile`,
-   `GNUmakefile`) at the repo root and grep it for a `lint:` target — e.g.
-   `grep -E '^lint:' Makefile` or `make -n lint` to preview what it runs. Many Go repos wrap
-   `golangci-lint` in `make lint` to pin the version, pass a specific config path, or lint
-   only certain modules/directories. If a `lint` target exists, use `make lint` (and
-   `make lint-fix` / `make fmt` if those targets also exist) instead of invoking
-   `golangci-lint` directly, so you match the project's actual CI behavior.
-   - If `make -n lint` shows the target just shells out to `golangci-lint run ...` with no
-     extra logic, it's fine to also call `golangci-lint` directly for faster iteration on a
-     single package — but do a final `make lint` before considering the work done.
-   - If the target does more (codegen, multiple modules, Docker, a pinned installer script),
-     always go through `make lint` — replicating it by hand risks missing a step.
+1. **Check for a `make lint` or `task lint` target first.** 
+   - Look for a `Makefile` (or `makefile`, `GNUmakefile`) or `Taskfile.yml` (or `Taskfile.yaml`) at the repo root.
+   - For Make: grep it for a `lint:` target — e.g. `grep -E '^lint:' Makefile` or `make -n lint` to preview what it runs.
+   - For Task: check for a `lint:` task — e.g. `task --list | grep lint` or `task -n lint` to preview what it runs.
+   - Many Go repos wrap `golangci-lint` in `make lint` or `task lint` to pin the version, pass a specific config path, or lint only certain modules/directories. If a lint target/task exists, use it (and `make lint-fix` / `task lint-fix` / `make fmt` / `task fmt` if those targets/tasks also exist) instead of invoking `golangci-lint` directly, so you match the project's actual CI behavior.
+   - If `make -n lint` or `task -n lint` shows the target/task just shells out to `golangci-lint run ...` with no extra logic, it's fine to also call `golangci-lint` directly for faster iteration on a single package — but do a final `make lint` or `task lint` before considering the work done.
+   - If the target/task does more (codegen, multiple modules, Docker, a pinned installer script), always go through `make lint` or `task lint` — replicating it by hand risks missing a step.
 2. Confirm the config: check for `.golangci.yml` / `.golangci.yaml` / `.golangci.toml` /
    `.golangci.json` at the repo root (golangci-lint searches upward from the linted path).
    If none exists, see `templates/.golangci.yml` for a reasonable v2 starting point rather
    than inventing one from memory.
 3. After editing Go files, run the linter scoped to what changed:
    - Via make: `make lint`
+   - Via task: `task lint`
    - Whole module directly: `golangci-lint run ./...`
    - Only files newer than a base ref (fast, good for iterative work):
      `golangci-lint run --new-from-rev=HEAD ./...`
-4. Run formatters as a separate step — check for a `make fmt` target first; otherwise
+4. Run formatters as a separate step — check for a `make fmt` or `task fmt` target/task first; otherwise
    `golangci-lint fmt ./...` (v2) handles `gofmt`/`goimports`-style formatting, while `run`
    handles the actual lint checks.
 5. Fix every reported issue:
-   - Auto-fixable: `make lint-fix` if that target exists, otherwise `golangci-lint run --fix ./...`
+   - Auto-fixable: `make lint-fix` or `task lint-fix` if that target/task exists, otherwise `golangci-lint run --fix ./...`
    - Everything else: edit the code to address the finding directly.
-6. Re-run `make lint` (or `golangci-lint run ./...` if there's no make target) until it reports
+6. Re-run `make lint` or `task lint` (or `golangci-lint run ./...` if there's no make/task target) until it reports
    no issues on the touched files.
 7. If a finding is a genuine false positive, use a scoped `//nolint:<linter>` comment with a
    reason (see below) instead of disabling the linter project-wide.
@@ -79,7 +75,11 @@ without silencing checks unless there's no reasonable fix.
 ## Useful commands
 
 - `make -n lint` — preview what the project's `lint` make target actually runs, without running it.
-- `make lint` — the project's own lint entry point, if one exists; prefer this over calling
+- `make lint` — the project's own lint entry point via Make, if one exists; prefer this over calling
+  `golangci-lint` directly.
+- `task --list` — list available Task tasks, check for `lint`, `fmt`, `lint-fix`, etc.
+- `task -n lint` — preview what the project's `lint` task actually runs, without running it.
+- `task lint` — the project's own lint entry point via Task, if one exists; prefer this over calling
   `golangci-lint` directly.
 - `golangci-lint run ./...` — lint the whole module.
 - `golangci-lint run --fix ./...` — lint and auto-fix what can be fixed.
