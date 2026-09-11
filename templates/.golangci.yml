@@ -1,0 +1,32 @@
+# Starter golangci-lint v2 config.
+# Only use this when a project has no .golangci.yml / .golangci.yaml / .golangci.toml /
+# .golangci.json of its own — adapt it to the project's needs rather than applying as-is.
+version: "2"
+
+run:
+  timeout: 5m
+
+linters:
+  default: standard
+  enable:
+    - bodyclose
+    - copyloopvar
+    - durationcheck
+    - errorlint
+    - gocritic
+    - godot
+    - misspell
+    - nilnil
+    - noctx
+    - nolintlint
+    - unconvert
+    - unparam
+
+formatters:
+  enable:
+    - gofmt
+    - goimports
+
+issues:
+  max-issues-per-linter: 0
+  max-same-issues: 0
